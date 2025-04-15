@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes Management</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#10b981',
+secondary: '#059669'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+}
+}
+}
+}
+</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+.note-content {
+overflow: hidden;
+display: -webkit-box;
+-webkit-line-clamp: 3;
+-webkit-box-orient: vertical;
+}
+.layout-btn.active {
+background-color: #f3f4f6;
+}
+.list-layout {
+grid-template-columns: 1fr !important;
+}
+.list-layout > div {
+max-width: 100% !important;
+}
+.list-layout .note-content {
+-webkit-line-clamp: 2;
+}
+</style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-emerald-50 min-h-screen">
+<div class="flex">
+<aside class="w-64 h-screen bg-white/70 backdrop-blur-xl shadow-[0_0_50px_rgba(16,185,129,0.1)] fixed left-0 flex flex-col border-r border-white/50">
+<div class="p-6">
+<h1 class="text-2xl font-['Pacifico'] text-primary">Notify Me</h1>
+</div>
+<div class="flex-1">
+<nav class="px-4">
+<button onclick="setActiveNav(this, 'all')" class="w-full mb-2 p-3 text-left rounded-full bg-green-50 flex items-center gap-2 cursor-pointer text-gray-700 transition-all duration-300 hover:scale-105 nav-item active">
+<i class="ri-file-list-line ri-lg"></i>
+All Notes
+</button>
+<button onclick="setActiveNav(this, 'categories')" class="w-full mb-2 p-3 text-left rounded-full hover:bg-green-50 flex items-center gap-2 cursor-pointer text-gray-700 transition-all duration-300 hover:scale-105 nav-item">
+<i class="ri-price-tag-3-line ri-lg"></i>
+Categories
+</button>
+<button onclick="setActiveNav(this, 'pinned')" class="w-full mb-2 p-3 text-left rounded-full hover:bg-green-50 flex items-center gap-2 cursor-pointer text-gray-700 transition-all duration-300 hover:scale-105 nav-item">
+<i class="ri-pushpin-line ri-lg"></i>
+Pinned
+</button>
+<button onclick="setActiveNav(this, 'archive')" class="w-full mb-2 p-3 text-left rounded-full hover:bg-green-50 flex items-center gap-2 cursor-pointer text-gray-700 transition-all duration-300 hover:scale-105 nav-item">
+<i class="ri-archive-line ri-lg"></i>
+Archive
+</button>
+<button onclick="setActiveNav(this, 'trash')" class="w-full mb-2 p-3 text-left rounded-full hover:bg-green-50 flex items-center gap-2 cursor-pointer text-gray-700 transition-all duration-300 hover:scale-105 nav-item">
+<i class="ri-delete-bin-line ri-lg"></i>
+Trash
+</button>
+</nav>
+</div>
+<div class="p-4 border-t">
+<div class="flex items-center gap-3 mb-4 p-2 rounded-button hover:bg-gray-100 cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white">
+<i class="ri-user-line ri-lg"></i>
+</div>
+<div>
+<div class="font-medium text-sm">Alexander Wilson</div>
+<a href="https://readdy.ai/home/82454fea-32f2-40d5-9fdd-57d3e8e0efa4/1435c9d9-f297-4e72-b2e6-986f526e4a6e" data-readdy="true" class="text-xs text-gray-500 hover:text-primary transition-colors">alex.wilson@email.com</a>
+</div>
+</div>
+<button class="w-full p-2 text-gray-700 rounded-button hover:bg-gray-100 flex items-center justify-center gap-2 cursor-pointer">
+<i class="ri-logout-box-line"></i>
+Logout
+</button>
+</div>
+</aside>
+<main class="ml-64 flex-1 p-8">
+<div class="max-w-6xl mx-auto">
+<div class="flex items-center justify-between mb-8">
+<div class="relative flex-1 max-w-lg">
+<input type="text" placeholder="Search notes..." class="w-full pl-10 pr-4 py-3 rounded-full bg-white/80 backdrop-blur-xl border-none shadow-sm focus:ring-2 focus:ring-primary/20 text-sm border border-white/50">
+<i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-button hover:bg-primary/90 cursor-pointer whitespace-nowrap">
+<i class="ri-add-line"></i>
+New Note
+</button>
+<div class="flex items-center gap-2 bg-white rounded-full p-1 shadow-sm">
+<button onclick="switchLayout('grid')" class="p-2 rounded-full hover:bg-gray-100 cursor-pointer layout-btn active" data-layout="grid">
+<i class="ri-layout-grid-line text-gray-600"></i>
+</button>
+<button onclick="switchLayout('list')" class="p-2 rounded-full hover:bg-gray-100 cursor-pointer layout-btn" data-layout="list">
+<i class="ri-list-unordered text-gray-600"></i>
+</button>
+</div>
+</div>
+</div>
+<div id="notesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-105 hover:bg-white/80 border border-white/50 hover:border-white/70">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium">Project Meeting Notes</h3>
+<div class="flex items-center gap-2">
+<button onclick="togglePin(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer pin-button">
+<i class="ri-pushpin-line text-gray-600 transition-all duration-300"></i>
+</button>
+<div class="relative">
+<button onclick="toggleMoreOptions(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer more-options-btn">
+<i class="ri-more-2-fill text-gray-600"></i>
+</button>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button onclick="editNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button onclick="moveToArchive(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button onclick="shareNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button onclick="exportNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button onclick="confirmDelete(this)" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+</div>
+</div>
+</div>
+<p class="text-gray-600 text-sm note-content mb-4">Discussed new feature implementation timeline. Team agreed on MVP scope. Need to follow up with design team regarding UI mockups. Action items assigned to respective team members.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-primary/20 to-primary/10 text-primary font-medium">Work</span>
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-secondary/20 to-secondary/10 text-secondary font-medium">Meeting</span>
+</div>
+<span class="text-xs text-gray-500">Mar 23, 2025</span>
+</div>
+</div>
+<div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-105 hover:bg-white/80 border border-white/50 hover:border-white/70">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium">Research Findings</h3>
+<div class="flex items-center gap-2">
+<button onclick="togglePin(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer pin-button">
+<i class="ri-pushpin-line text-gray-600 transition-all duration-300"></i>
+</button>
+<div class="relative">
+<button onclick="toggleMoreOptions(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer more-options-btn">
+<i class="ri-more-2-fill text-gray-600"></i>
+</button>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button onclick="editNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button onclick="moveToArchive(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button onclick="shareNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button onclick="exportNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button onclick="confirmDelete(this)" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+</div>
+</div>
+</div>
+<p class="text-gray-600 text-sm note-content mb-4">Key insights from market analysis. Competitor benchmarking results show opportunity in mobile-first approach. User interviews revealed pain points in current solutions.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-primary/20 to-primary/10 text-primary font-medium">Research</span>
+</div>
+<span class="text-xs text-gray-500">Mar 23, 2025</span>
+</div>
+</div>
+<div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-105 hover:bg-white/80 border border-white/50 hover:border-white/70">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium">Personal Goals 2025</h3>
+<div class="flex items-center gap-2">
+<button onclick="togglePin(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer pin-button">
+<i class="ri-pushpin-line text-gray-600 transition-all duration-300"></i>
+</button>
+<div class="relative">
+<button onclick="toggleMoreOptions(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer more-options-btn">
+<i class="ri-more-2-fill text-gray-600"></i>
+</button>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button onclick="editNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button onclick="moveToArchive(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button onclick="shareNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button onclick="exportNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button onclick="confirmDelete(this)" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+</div>
+</div>
+</div>
+<p class="text-gray-600 text-sm note-content mb-4">Complete advanced certification. Read 24 books this year. Start meditation practice. Learn new programming language. Travel to three new countries.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-primary/20 to-primary/10 text-primary font-medium">Personal</span>
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-secondary/20 to-secondary/10 text-secondary font-medium">Goals</span>
+</div>
+<span class="text-xs text-gray-500">Mar 23, 2025</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<div id="noteEditor" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+<div id="confirmDialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+<div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+<h3 class="text-lg font-medium mb-4">Are you sure you want to discard your changes?</h3>
+<div class="flex justify-end gap-3">
+<button onclick="closeConfirmDialog()" class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-100 border border-gray-200">Cancel</button>
+<button onclick="discardChanges()" class="px-4 py-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600">Discard</button>
+</div>
+</div>
+</div>
+<div class="bg-white/80 backdrop-blur-xl rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-white/30 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<input type="text" placeholder="Note title" class="text-xl font-medium border-none focus:ring-0 w-full">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100" onclick="closeEditor()">
+<i class="ri-close-line text-gray-600"></i>
+</button>
+</div>
+<div class="border border-gray-200 rounded-2xl p-4 mb-6 bg-white">
+<div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-3">
+<button class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+<i class="ri-bold text-gray-600"></i>
+</button>
+<button class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+<i class="ri-italic text-gray-600"></i>
+</button>
+<button class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+<i class="ri-underline text-gray-600"></i>
+</button>
+<div class="w-px h-6 bg-gray-200"></div>
+<button class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+<i class="ri-list-unordered text-gray-600"></i>
+</button>
+<button class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+<i class="ri-list-ordered text-gray-600"></i>
+</button>
+</div>
+<textarea placeholder="Start writing..." class="w-full h-64 resize-none border-none focus:ring-0"></textarea>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-100 border border-gray-200">
+<i class="ri-price-tag-3-line mr-1"></i>
+Add Tags
+</button>
+<div class="relative">
+<button id="colorPickerBtn" class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-100 border border-gray-200">
+<i class="ri-palette-line mr-1"></i>
+Color
+</button>
+<div id="colorPickerDropdown" class="absolute left-0 top-full mt-2 bg-white rounded-xl shadow-lg p-4 w-64 hidden z-50 border border-gray-100">
+<div class="mb-4">
+<h4 class="text-sm font-medium text-gray-700 mb-2">Preset Colors</h4>
+<div class="grid grid-cols-5 gap-2">
+<button class="w-8 h-8 rounded-full bg-red-100 hover:ring-2 hover:ring-offset-2 hover:ring-red-200" data-color="#fee2e2"></button>
+<button class="w-8 h-8 rounded-full bg-blue-100 hover:ring-2 hover:ring-offset-2 hover:ring-blue-200" data-color="#dbeafe"></button>
+<button class="w-8 h-8 rounded-full bg-green-100 hover:ring-2 hover:ring-offset-2 hover:ring-green-200" data-color="#dcfce7"></button>
+<button class="w-8 h-8 rounded-full bg-yellow-100 hover:ring-2 hover:ring-offset-2 hover:ring-yellow-200" data-color="#fef9c3"></button>
+<button class="w-8 h-8 rounded-full bg-purple-100 hover:ring-2 hover:ring-offset-2 hover:ring-purple-200" data-color="#f3e8ff"></button>
+</div>
+</div>
+<div>
+<h4 class="text-sm font-medium text-gray-700 mb-2">Custom Color</h4>
+<input type="color" id="customColorPicker" class="w-full h-10 rounded cursor-pointer">
+</div>
+<div class="mt-4 flex items-center gap-2">
+<label class="inline-flex items-center">
+<input type="radio" name="colorTarget" value="background" class="form-radio text-primary" checked>
+<span class="ml-2 text-sm text-gray-600">Background</span>
+</label>
+<label class="inline-flex items-center">
+<input type="radio" name="colorTarget" value="text" class="form-radio text-primary">
+<span class="ml-2 text-sm text-gray-600">Text</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="handleCancel()" class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-100 border border-gray-200">Cancel</button>
+<button class="px-6 py-2.5 text-sm bg-gradient-to-r from-primary to-secondary text-white rounded-full shadow-[0_10px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.4)] transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 font-medium">Save Note</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function setActiveNav(element, type) {
+// Remove active class from all nav items
+document.querySelectorAll('.nav-item').forEach(item => {
+item.classList.remove('bg-green-50', 'active');
+});
+// Add active class to clicked item
+element.classList.add('bg-green-50', 'active');
+// Filter notes based on type
+const notes = document.querySelectorAll('.grid > div');
+notes.forEach(note => {
+if(type === 'all') {
+note.style.display = 'block';
+} else {
+// Add other filtering logic here for different nav items
+note.style.display = 'none';
+}
+});
+}
+const mockNotes = [
+{
+title: "Project Meeting Notes",
+content: "Discussed new feature implementation timeline. Team agreed on MVP scope. Need to follow up with design team regarding UI mockups. Action items assigned to respective team members.",
+tags: ["Work", "Meeting"],
+date: "Mar 23, 2025",
+backgroundColor: "",
+textColor: ""
+},
+{
+title: "Research Findings",
+content: "Key insights from market analysis. Competitor benchmarking results show opportunity in mobile-first approach. User interviews revealed pain points in current solutions.",
+tags: ["Research"],
+date: "Mar 23, 2025"
+},
+{
+title: "Personal Goals 2025",
+content: "Complete advanced certification. Read 24 books this year. Start meditation practice. Learn new programming language. Travel to three new countries.",
+tags: ["Personal", "Goals"],
+date: "Mar 23, 2025"
+}
+];
+let notesContainer;
+let currentNoteColor = {
+background: '',
+text: ''
+};
+document.addEventListener('DOMContentLoaded', function() {
+notesContainer = document.querySelector('.grid');
+const newNoteBtn = document.querySelector('button i.ri-add-line').parentElement;
+newNoteBtn.addEventListener('click', openEditor);
+document.querySelector('#noteEditor button.px-6').addEventListener('click', saveNote);
+document.querySelector('#noteEditor button:not(.px-6)').addEventListener('click', closeEditor);
+const colorPickerBtn = document.getElementById('colorPickerBtn');
+const colorPickerDropdown = document.getElementById('colorPickerDropdown');
+const customColorPicker = document.getElementById('customColorPicker');
+colorPickerBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+colorPickerDropdown.classList.toggle('hidden');
+});
+document.addEventListener('click', (e) => {
+if (!colorPickerDropdown.contains(e.target) && e.target !== colorPickerBtn) {
+colorPickerDropdown.classList.add('hidden');
+}
+});
+const presetColorButtons = colorPickerDropdown.querySelectorAll('[data-color]');
+presetColorButtons.forEach(button => {
+button.addEventListener('click', () => {
+const color = button.dataset.color;
+applyColor(color);
+});
+});
+customColorPicker.addEventListener('change', (e) => {
+applyColor(e.target.value);
+});
+function applyColor(color) {
+const colorTarget = document.querySelector('input[name="colorTarget"]:checked').value;
+const editor = document.getElementById('noteEditor');
+const noteContent = editor.querySelector('.bg-white');
+if (colorTarget === 'background') {
+noteContent.style.backgroundColor = color;
+currentNoteColor.background = color;
+} else {
+noteContent.style.color = color;
+currentNoteColor.text = color;
+}
+}
+});
+function openEditor() {
+const editor = document.getElementById('noteEditor');
+editor.style.display = 'flex';
+const titleInput = editor.querySelector('input[type="text"]');
+const contentArea = editor.querySelector('textarea');
+titleInput.value = '';
+contentArea.value = '';
+originalTitle = '';
+originalContent = '';
+titleInput.focus();
+}
+let originalTitle = '';
+let originalContent = '';
+function closeEditor() {
+document.getElementById('noteEditor').style.display = 'none';
+resetEditorState();
+}
+function resetEditorState() {
+originalTitle = '';
+originalContent = '';
+document.getElementById('noteEditor').querySelector('input[type="text"]').value = '';
+document.getElementById('noteEditor').querySelector('textarea').value = '';
+}
+function hasUnsavedChanges() {
+const currentTitle = document.getElementById('noteEditor').querySelector('input[type="text"]').value;
+const currentContent = document.getElementById('noteEditor').querySelector('textarea').value;
+return currentTitle !== originalTitle || currentContent !== originalContent;
+}
+function handleCancel() {
+if (hasUnsavedChanges()) {
+document.getElementById('confirmDialog').style.display = 'flex';
+} else {
+closeEditor();
+}
+}
+function closeConfirmDialog() {
+document.getElementById('confirmDialog').style.display = 'none';
+}
+function discardChanges() {
+closeConfirmDialog();
+closeEditor();
+}
+function saveNote() {
+const editor = document.getElementById('noteEditor');
+const title = editor.querySelector('input[type="text"]').value;
+const content = editor.querySelector('textarea').value;
+if (!title.trim() || !content.trim()) {
+showToast('Please fill in both title and content');
+return;
+}
+const newNote = {
+title,
+content,
+tags: [],
+date: new Date().toLocaleDateString('en-US', {
+month: 'short',
+day: 'numeric',
+year: 'numeric'
+}),
+backgroundColor: currentNoteColor.background,
+textColor: currentNoteColor.text
+};
+mockNotes.unshift(newNote);
+renderNewNote(newNote);
+closeEditor();
+showToast('Note saved successfully');
+}
+function renderNewNote(note) {
+const noteElement = document.createElement('div');
+noteElement.className = 'backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-105 border border-white/50 hover:border-white/70';
+noteElement.dataset.pinned = 'false';
+noteElement.style.backgroundColor = note.backgroundColor || 'rgba(255, 255, 255, 0.7)';
+noteElement.style.color = note.textColor || 'inherit';
+noteElement.innerHTML = `
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium">${note.title}</h3>
+<div class="flex items-center gap-2">
+<button onclick="togglePin(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer pin-button">
+<i class="ri-pushpin-line text-gray-600 transition-all duration-300"></i>
+</button>
+<div class="relative">
+<button onclick="toggleMoreOptions(this)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer more-options-btn">
+<i class="ri-more-2-fill text-gray-600"></i>
+</button>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button onclick="editNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button onclick="moveToArchive(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button onclick="shareNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button onclick="exportNote(this)" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button onclick="confirmDelete(this)" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+<div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 hidden more-options-menu z-50 border border-gray-100">
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-edit-line"></i>
+Edit
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-archive-line"></i>
+Move to Archive
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-share-line"></i>
+Share
+</button>
+<button class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+<i class="ri-download-line"></i>
+Export
+</button>
+<div class="h-px bg-gray-100 my-2"></div>
+<button class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+<i class="ri-delete-bin-line"></i>
+Delete
+</button>
+</div>
+</div>
+</div>
+</div>
+<p class="text-gray-600 text-sm note-content mb-4">${note.content}</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+${note.tags.map(tag => `
+<span class="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-primary/20 to-primary/10 text-primary font-medium">${tag}</span>
+`).join('')}
+</div>
+<span class="text-xs text-gray-500">${note.date}</span>
+</div>
+`;
+notesContainer.insertBefore(noteElement, notesContainer.firstChild);
+}
+document.addEventListener('click', (e) => {
+const menus = document.querySelectorAll('.more-options-menu');
+const buttons = document.querySelectorAll('.more-options-btn');
+if (!e.target.closest('.more-options-btn')) {
+menus.forEach(menu => menu.classList.add('hidden'));
+}
+});
+function toggleMoreOptions(button) {
+const menu = button.nextElementSibling;
+const allMenus = document.querySelectorAll('.more-options-menu');
+allMenus.forEach(m => {
+if (m !== menu) {
+m.classList.add('hidden');
+}
+});
+menu.classList.toggle('hidden');
+}
+function confirmDelete(button) {
+const noteElement = button.closest('.backdrop-blur-xl');
+const confirmDialog = document.createElement('div');
+confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+confirmDialog.innerHTML = `
+<div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+<h3 class="text-lg font-medium mb-4">Are you sure you want to delete this note?</h3>
+<div class="flex justify-end gap-3">
+<button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-100 border border-gray-200">Cancel</button>
+<button onclick="deleteNote(this)" class="px-4 py-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600">Delete</button>
+</div>
+</div>
+`;
+document.body.appendChild(confirmDialog);
+}
+function deleteNote(button) {
+const dialog = button.closest('.fixed');
+const noteElement = document.querySelector('.more-options-menu:not(.hidden)').closest('.backdrop-blur-xl');
+noteElement.remove();
+dialog.remove();
+showToast('Note deleted');
+}
+function editNote(button) {
+const noteElement = button.closest('.backdrop-blur-xl');
+const title = noteElement.querySelector('h3').textContent;
+const content = noteElement.querySelector('.note-content').textContent;
+const editor = document.getElementById('noteEditor');
+editor.querySelector('input[type="text"]').value = title;
+editor.querySelector('textarea').value = content;
+editor.style.display = 'flex';
+originalTitle = title;
+originalContent = content;
+button.closest('.more-options-menu').classList.add('hidden');
+}
+function moveToArchive(button) {
+const noteElement = button.closest('.backdrop-blur-xl');
+noteElement.remove();
+showToast('Note moved to archive');
+button.closest('.more-options-menu').classList.add('hidden');
+}
+function shareNote(button) {
+showToast('Sharing options coming soon');
+button.closest('.more-options-menu').classList.add('hidden');
+}
+function exportNote(button) {
+const noteElement = button.closest('.backdrop-blur-xl');
+const title = noteElement.querySelector('h3').textContent;
+const content = noteElement.querySelector('.note-content').textContent;
+const blob = new Blob([`${title}\n\n${content}`], { type: 'text/plain' });
+const url = window.URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.txt`;
+a.click();
+window.URL.revokeObjectURL(url);
+showToast('Note exported');
+button.closest('.more-options-menu').classList.add('hidden');
+}
+function togglePin(button) {
+const noteElement = button.closest('.backdrop-blur-xl');
+const icon = button.querySelector('i');
+const isPinned = noteElement.dataset.pinned === 'true';
+// Toggle pin state
+noteElement.dataset.pinned = !isPinned;
+// Update icon appearance
+icon.className = isPinned ? 'ri-pushpin-line text-gray-600 transition-all duration-300' : 'ri-pushpin-fill text-primary transition-all duration-300';
+// Add animation class
+noteElement.style.transform = 'scale(1.02)';
+setTimeout(() => {
+noteElement.style.transform = 'scale(1)';
+}, 200);
+// Reorder notes
+const notesContainer = noteElement.parentElement;
+if (!isPinned) {
+notesContainer.insertBefore(noteElement, notesContainer.firstChild);
+} else {
+const firstUnpinnedNote = Array.from(notesContainer.children).find(note => note.dataset.pinned !== 'true');
+if (firstUnpinnedNote) {
+notesContainer.insertBefore(noteElement, firstUnpinnedNote);
+} else {
+notesContainer.appendChild(noteElement);
+}
+}
+showToast(isPinned ? 'Note unpinned' : 'Note pinned');
+}
+function switchLayout(layout) {
+const container = document.getElementById('notesContainer');
+const buttons = document.querySelectorAll('.layout-btn');
+buttons.forEach(btn => {
+btn.classList.remove('active');
+if(btn.dataset.layout === layout) {
+btn.classList.add('active');
+}
+});
+if(layout === 'list') {
+container.classList.add('list-layout');
+} else {
+container.classList.remove('list-layout');
+}
+}
+function showToast(message) {
+const toast = document.createElement('div');
+toast.className = 'fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg transform transition-all duration-300 translate-y-20 opacity-0';
+toast.textContent = message;
+document.body.appendChild(toast);
+setTimeout(() => {
+toast.classList.remove('translate-y-20', 'opacity-0');
+}, 100);
+setTimeout(() => {
+toast.classList.add('translate-y-20', 'opacity-0');
+setTimeout(() => {
+document.body.removeChild(toast);
+}, 300);
+}, 3000);
+}
+document.addEventListener('keydown', function(e) {
+if (e.key === 'Escape') {
+closeEditor();
+}
+});
+</script>
+</body>
+</html>
